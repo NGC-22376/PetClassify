@@ -4,7 +4,7 @@ import zipfile
 
 from PIL import Image
 
-DATA_DIR = "Dataset"
+DATA_DIR = "../Dataset"
 IMG_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.ppm', '.bmp', '.tif', '.tiff']
 file_lev = []
 
@@ -124,7 +124,7 @@ if __name__ == '__main__':
     save_dir = os.path.abspath(DATA_DIR)
     if not os.path.isdir(save_dir):
         os.makedirs(save_dir)
-    zip_file = "kaggleCatsAndDogs_3367a.zip"
+    zip_file = "../kaggleCatsAndDogs_3367a.zip"
     extract_dataset(zip_file, save_dir)
     print("filter invalid images!")
     dataset_path = os.path.join(save_dir)

@@ -25,14 +25,14 @@ if __name__ == '__main__':
     # define network
     backbone_net, head_net, net = define_net(config, activation="Softmax")
 
-    # load parameters into backbone net from pre_training checkpoint
+    # load parameters into backbone.ckpt net from pre_training checkpoint
     load_ckpt(backbone_net, args_opt.pretrain_ckpt, trainable=False)
 
     # show test img and predict label pre training
     test_list = get_samples_from_eval_dataset(args_opt.dataset_path)
     predict_from_net(net, test_list, config, show_title="pre training")
 
-    # catch backbone features
+    # catch backbone.ckpt features
     data, step_size = extract_features(backbone_net, args_opt.dataset_path, config)
 
     # define loss

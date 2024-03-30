@@ -285,7 +285,7 @@ class MobileNetV2Combine(nn.Cell):
         Tensor, output tensor.
 
     Examples:
-        >>> MobileNetV2Combine(backbone, head)
+        >>> MobileNetV2Combine(backbone.ckpt, head)
     """
 
     def __init__(self, backbone, head, activation="None"):
