@@ -68,13 +68,13 @@ def delete_empty_file(my_dir):
             break
 
 
-def filter_dataset(dataset_path):
+def filter_dataset(data_path):
     """Remove all the files that are not in JPEG format"""
-    for sub_dir in os.listdir(dataset_path):
-        file_path = os.path.join(dataset_path, sub_dir)
+    for sub_dir in os.listdir(data_path):
+        file_path = os.path.join(data_path, sub_dir)
         if os.path.isfile(file_path):
             filter_file(file_path)
-    go_to_file_lev(dataset_path)
+    go_to_file_lev(data_path)
     for dirs in file_lev:
         if is_dir_empty(dirs):
             delete_file(dirs)
@@ -84,47 +84,47 @@ def filter_dataset(dataset_path):
     file_lev.clear()
 
 
-def split_dataset(dataset_path, eval_split=0.1):
+def split_dataset(data_path, eval_split=0.1):
     """Split the dataset into train and evaluate"""
-    go_to_file_lev(dataset_path)
-    os.makedirs(os.path.join(dataset_path, "train"))
-    os.makedirs(os.path.join(dataset_path, "eval"))
+    go_to_file_lev(data_path)
+    os.makedirs(os.path.join(data_path, "train"))
+    os.makedirs(os.path.join(data_path, "eval"))
     for dirs in file_lev:
         to_be_cls = os.listdir(dirs)
         train_size = int(len(to_be_cls) * (1 - eval_split))
-        os.makedirs(os.path.join(dataset_path, "train", os.path.basename(dirs)))
-        os.makedirs(os.path.join(dataset_path, "eval", os.path.basename(dirs)))
+        os.makedirs(os.path.join(data_path, "train", os.path.basename(dirs)))
+        os.makedirs(os.path.join(data_path, "eval", os.path.basename(dirs)))
         for i, file_name in enumerate(os.listdir(dirs)):
             source_file = os.path.join(dirs, file_name)
             if i <= train_size:
-                target_file = os.path.join(dataset_path, "train", os.path.basename(dirs), file_name)
+                target_file = os.path.join(data_path, "train", os.path.basename(dirs), file_name)
             else:
-                target_file = os.path.join(dataset_path, "eval", os.path.basename(dirs), file_name)
+                target_file = os.path.join(data_path, "eval", os.path.basename(dirs), file_name)
             shutil.move(source_file, target_file)
         delete_file(dirs)
-    delete_empty_file(dataset_path)
+    delete_empty_file(data_path)
 
 
-def extract_dataset(zip_file, save_dir):
+def extract_dataset(zip_path, save_path):
     """Extract target file"""
-    if not os.path.exists(zip_file):
-        raise ValueError(f"{zip_file} is not a valid path!")
+    if not os.path.exists(zip_path):
+        raise ValueError(f"{zip_path} is not a valid path!")
     try:
         print(f"Begin to extract!")
-        zip_file = zipfile.ZipFile(zip_file)
-        for names in zip_file.namelist():
-            zip_file.extract(names, save_dir)
-        zip_file.close()
-        print(f"Successfully extract at {os.path.join(save_dir, DATA_DIR)}")
-    except:
-        raise ValueError(f"{save_dir} is not a valid path!")
+        zip_path = zipfile.ZipFile(zip_path)
+        for names in zip_path.namelist():
+            zip_path.extract(names, save_path)
+        zip_path.close()
+        print(f"Successfully extract at {os.path.join(save_path, DATA_DIR)}")
+    except ValueError:
+        raise ValueError(f"{save_path} is not a valid path!")
 
 
 if __name__ == '__main__':
     save_dir = os.path.abspath(DATA_DIR)
     if not os.path.isdir(save_dir):
         os.makedirs(save_dir)
-    zip_file = "./kagglecatsanddogs_3367a.zip"
+    zip_file = "kaggleCatsAndDogs_3367a.zip"
     extract_dataset(zip_file, save_dir)
     print("filter invalid images!")
     dataset_path = os.path.join(save_dir)
