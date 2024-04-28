@@ -4,7 +4,7 @@ import zipfile
 
 from PIL import Image
 
-DATA_DIR = "../Dataset"
+DATA_DIR = "Dataset"
 IMG_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.ppm', '.bmp', '.tif', '.tiff']
 file_lev = []
 

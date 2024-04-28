@@ -82,7 +82,7 @@ def extract_features(net, dataset_path, config):
     if train_dataset.get_dataset_size() == 0:
         raise ValueError("The step_size of dataset is zero. Check if the images count of train dataset is more \
             than batch_size in config.py")
-    if os.path.exists(features_folder):
+    if os.path.exists(features_folder) and len(os.listdir(features_folder)) != 0:
         train_features = np.load(os.path.join(features_folder, f"train_feature.npy"))
         train_labels = np.load(os.path.join(features_folder, f"train_label.npy"))
         eval_features = np.load(os.path.join(features_folder, f"eval_feature.npy"))
