@@ -5,7 +5,12 @@ import timm
 import torch
 import torch.nn as nn
 
-
+# 特征抽取模型
+model = timm.create_model(
+    'mobilenetv4_hybrid_medium.ix_e550_r256_in1k',
+    pretrained=True,
+    features_only=True,
+)
 # 自定义MobileNetV4分类器
 class MobileNetV4Classifier(nn.Module):
     def __init__(self, num_classes=10):
@@ -20,21 +25,6 @@ class MobileNetV4Classifier(nn.Module):
 
     def forward(self, x):
         return self.classifier(x)
-
-
-def extract_features(img, device):
-    """
-    :param img: pytorch.Tensor[3, 384, 384]
-    :return: MNv4抽取的最后一层特征
-    """
-    model = timm.create_model(
-        'mobilenetv4_hybrid_large.e600_r384_in1k',
-        pretrained=True,
-        features_only=True,
-    )
-    model.to(device)
-    backbone = model.eval()
-    return backbone(img)[-1]
 
 
 def save_checkpoint(model, optimizer, epoch, path):

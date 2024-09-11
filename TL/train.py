@@ -3,9 +3,11 @@
 """
 import torch
 import torch.nn as nn
-from model import extract_features, save_checkpoint
+from model import save_checkpoint
 from torch.utils.data import DataLoader
 from matplotlib import pyplot as plt
+from extract_features import extract_features
+from model import model
 from datetime import datetime
 from IPython.display import clear_output
 
@@ -15,23 +17,23 @@ def init_weight(layer):
         nn.init.xavier_uniform_(layer.weight)
 
 
-def get_current_time():
+def output_msg_with_time(msg):
     current = datetime.now()
     hour, minute, second = current.hour, current.minute, current.second
-    print(f"当前时间{hour}:{minute}:{second}")
+    print(f"{msg}, '\t', 当前时间{hour}:{minute}:{second}")
 
 
-def evaluate(net, test_data, loss, device):
+def evaluate(net, test_data, batch_size, loss, device):
     """
     :return: 测试的平均误差
     """
-    test_dataloader = DataLoader(test_data, batch_size=8, shuffle=True, num_workers=0)
+    test_dataloader = DataLoader(test_data, batch_size=4, shuffle=True, num_workers=0)
     total_loss = 0
     net.eval()
     # 测试
     for X, y in test_dataloader:
         X, y = X.to(device), y.to(device)
-        x = extract_features(X, device=device)
+        x = extract_features(X, net=model, device=device)
         eval_loss = loss(net(x), y)
         total_loss = total_loss + eval_loss
         avg_test_loss = total_loss / len(test_dataloader)
@@ -60,7 +62,7 @@ def draw(loss_list, epochs):
     plt.show()
 
 
-def train(net, train_data, test_data, epochs, device, lr=0.1):
+def train(net, train_data, test_data, batch_size, epochs, device, lr=0.1):
     # 初始化网络参数
     net.apply(init_weight)
 
@@ -78,18 +80,17 @@ def train(net, train_data, test_data, epochs, device, lr=0.1):
     # 开始训练
     loss_list = [[], []]
     for epoch in range(0, epochs):
-        print("训练轮次：", epoch + 1, end='\t')
-        get_current_time()
+        output_msg_with_time(f"训练轮次：{epoch + 1}")
         net.train()
         total_loss = 0
-        train_dataloader = DataLoader(train_data, batch_size=8, shuffle=True, num_workers=0)
         print("Loading data finished.")
+        times = 0
+        train_dataloader = DataLoader(train_data, 4, shuffle=True, num_workers=0)
         for X, y in train_dataloader:
+            times += 1
             # 每batch的训练全程
             optimizer.zero_grad()
-            X, y = X.to(device), y.to(device)
-            x = extract_features(X, device=device)
-            print("feature extract finished.")
+            x, y = X.to(device), y.to(device)
             y_hat = net(x)
             train_loss = loss(y_hat, y)
             train_loss.backward()
@@ -101,14 +102,14 @@ def train(net, train_data, test_data, epochs, device, lr=0.1):
         # 得到每个测试batch的平均误差
         batch_num = len(train_dataloader)
         avg_loss = total_loss / batch_num
-        print("本轮次训练平均误差：", avg_loss)
+        output_msg_with_time(f"本轮次训练平均误差：{avg_loss}")
         loss_list[0].append(float(avg_loss))
 
         # 保存checkpoint文件
         save_checkpoint(model=net, optimizer=optimizer, epoch=epoch + 1, path=r"./checkpoint.pth")
 
         # 测试
-        test_loss = evaluate(net, test_data, loss, device)
+        test_loss = evaluate(net, test_data, batch_size, loss, device)
         loss_list[1].append(test_loss)
 
         # 绘图
