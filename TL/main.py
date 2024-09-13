@@ -1,13 +1,13 @@
-from dataset import MyDataset
+from dataset import MyDataset, NpzDataset
 from model import MobileNetV4Classifier
 from train import train
 from torch.utils.data import ConcatDataset
-from extract_features import load_saved_features
 import torch
 
 if __name__ == '__main__':
+    save_path = '../train_features.npz'
     # 加载训练数据集（特征）
-    train_dataset = load_saved_features()
+    train_dataset = NpzDataset(save_path)
 
     # 生成两类别各自的测试数据集
     dataset_dir = r'C:\Users\30744\Desktop\CodeFiles\Python\MyPetClassification\Dataset'

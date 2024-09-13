@@ -3,13 +3,11 @@
 """
 import torch
 import torch.nn as nn
-from model import save_checkpoint
+
+from TL.utils import output_msg_with_time, draw, save_checkpoint
 from torch.utils.data import DataLoader
-from matplotlib import pyplot as plt
 from extract_features import extract_features
 from model import model
-from datetime import datetime
-from IPython.display import clear_output
 
 
 def init_weight(layer):
@@ -17,52 +15,42 @@ def init_weight(layer):
         nn.init.xavier_uniform_(layer.weight)
 
 
-def output_msg_with_time(msg):
-    current = datetime.now()
-    hour, minute, second = current.hour, current.minute, current.second
-    print(f"{msg}, '\t', 当前时间{hour}:{minute}:{second}")
-
-
 def evaluate(net, test_data, batch_size, loss, device):
     """
     :return: 测试的平均误差
     """
-    test_dataloader = DataLoader(test_data, batch_size=4, shuffle=True, num_workers=0)
+    test_dataloader = DataLoader(test_data, batch_size=batch_size, shuffle=True, num_workers=0)
     total_loss = 0
     net.eval()
+    model.eval()
     # 测试
+    acc = 0
+    times = 0
     for X, y in test_dataloader:
-        X, y = X.to(device), y.to(device)
-        x = extract_features(X, net=model, device=device)
-        eval_loss = loss(net(x), y)
+        with torch.no_grad():
+            X, y = X.to(device), y.to(device)
+            features = extract_features(X, model, batch_size, device=device)
+            x = torch.stack([feature for feature in features], dim=0)
+            y_hat = net(x)
+            eval_loss = loss(y_hat, y)
+
+        # 计算每一批量的准确个数，并累加
+        equal = torch.eq(y, torch.argmax(y_hat, dim=1))
+        acc += torch.sum(equal, dim=0)
+        # 累加所有批量的总误差
         total_loss = total_loss + eval_loss
-        avg_test_loss = total_loss / len(test_dataloader)
-        print("本轮次测试平均误差：", avg_test_loss)
-    return avg_test_loss
+        # 打印批量完成信息
+        times += 1
+        output_msg_with_time(f"test:{times * batch_size}")
+
+    batch_num = len(test_dataloader)
+    avg_test_loss = total_loss / (batch_num * 200)
+    avg_acc = acc / (batch_num * batch_size)
+    output_msg_with_time(f"本轮次测试平均误差：{avg_test_loss}, 平均准确率：{avg_acc}")
+    return avg_test_loss, avg_acc
 
 
-def draw(loss_list, epochs):
-    # 清除之前的图
-    clear_output(wait=True)
-
-    # 绘制误差变化图
-    x = range(1, epochs + 1)
-    y_train = loss_list[0]
-    y_test = loss_list[1]
-
-    plt.plot(x, y_train, 'b.-', label='训练误差')
-    plt.plot(x, y_test, 'r.-', label='测试误差')
-    plt.xlabel('训练轮次')
-    plt.ylabel('误差')
-    plt.title('训练与测试误差变化图')
-    # 图例
-    plt.legend()
-    # 网格线
-    plt.grid(True)
-    plt.show()
-
-
-def train(net, train_data, test_data, batch_size, epochs, device, lr=0.1):
+def train(net, train_data, test_data, batch_size, epochs, device, lr=0.05):
     # 初始化网络参数
     net.apply(init_weight)
 
@@ -77,17 +65,18 @@ def train(net, train_data, test_data, batch_size, epochs, device, lr=0.1):
     optimizer = torch.optim.SGD(net.parameters(), lr=lr)
     loss = nn.CrossEntropyLoss()
 
-    # 开始训练
+    times = 0
     loss_list = [[], []]
-    for epoch in range(0, epochs):
-        output_msg_with_time(f"训练轮次：{epoch + 1}")
+    accuracy_list = [[], []]
+    # 开始训练
+    for epoch in range(1, epochs + 1):
+        output_msg_with_time(f"训练轮次：{epoch}")
         net.train()
         total_loss = 0
+        accuracy = 0
         print("Loading data finished.")
-        times = 0
         train_dataloader = DataLoader(train_data, 4, shuffle=True, num_workers=0)
         for X, y in train_dataloader:
-            times += 1
             # 每batch的训练全程
             optimizer.zero_grad()
             x, y = X.to(device), y.to(device)
@@ -96,21 +85,33 @@ def train(net, train_data, test_data, batch_size, epochs, device, lr=0.1):
             train_loss.backward()
             optimizer.step()
 
+            # 计算每一批量的准确个数，并累加
+            equal = torch.eq(y, torch.argmax(y_hat, dim=1))
+            accuracy += torch.sum(equal, dim=0)
+
             # 所有测试batch的累计误差
             total_loss = total_loss + train_loss
 
+            # 打印批量完成信息
+            times += 1
+            output_msg_with_time(f"train:{batch_size * times}")
+
         # 得到每个测试batch的平均误差
         batch_num = len(train_dataloader)
-        avg_loss = total_loss / batch_num
-        output_msg_with_time(f"本轮次训练平均误差：{avg_loss}")
+        avg_loss = total_loss / (batch_num * 200)
+        avg_acc = accuracy / (batch_num * batch_size)
+        output_msg_with_time(f"本轮次训练平均误差：{avg_loss}, 平均准确率：{avg_acc}")
         loss_list[0].append(float(avg_loss))
+        accuracy_list[0].append(avg_acc)
 
         # 保存checkpoint文件
-        save_checkpoint(model=net, optimizer=optimizer, epoch=epoch + 1, path=r"./checkpoint.pth")
+        save_checkpoint(net=net, optimizer=optimizer, epoch=epoch, path="./checkpoint.pth")
 
         # 测试
-        test_loss = evaluate(net, test_data, batch_size, loss, device)
+        output_msg_with_time(f"开始第{epoch}轮次测试")
+        test_loss, test_acc = evaluate(net, test_data, batch_size, loss, device)
         loss_list[1].append(test_loss)
+        accuracy_list[1].append(test_acc)
 
         # 绘图
-        draw(loss_list, epochs)
+        draw(loss_list, accuracy_list, epoch)
