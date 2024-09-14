@@ -13,7 +13,7 @@ class UniversalInvertedBottleneckBlock(nn.Module):
         
         # 起始的深度卷积 
         self.start_dw_kernel_size = start_dw_kernel_size  # 保存起始深度卷积核大小 
-        if self.start_dw_kernel_size:  # 如果指定了起始深度卷积 (If a starting depthwise convolution is specified)
+        if self.start_dw_kernel_size:  # 如果指定了起始深度卷积 
             stride_ = stride if not middle_dw_downsample else 1  # 如果中间深度卷积不下采样，保持 stride，否则将 stride 设为 1 
             self._start_dw_ = conv_2d(inp, inp, kernel_size=start_dw_kernel_size, stride=stride_, groups=inp, act=False)
             # 创建起始的深度卷积层，输入输出通道数相同，groups=inp表示是深度卷积 
