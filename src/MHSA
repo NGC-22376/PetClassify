@@ -14,7 +14,7 @@ class MHSA(nn.Module):
         self.key_dense = nn.Linear(dim, dim)   #键
         self.value_dense = nn.Linear(dim, dim)   #值   生成线性变换层
         self.out_dense = nn.Linear(dim, dim)
-        self.batch_norm = nn.BatchNorm1d(dim)  # BatchNorm对输出进行批量归一化
+        self.batch_norm = nn.BatchNorm1d(dim)  # BatchNorm1d对输出进行批量归一化
         self.attention = nn.MultiheadAttention(embed_dim=dim, num_heads=num_heads, batch_first=True)  #输入的第一个维度是批量大小
 
     def forward(self, x):
