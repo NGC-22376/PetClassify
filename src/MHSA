@@ -8,7 +8,7 @@ class MHSA(nn.Module):
         self.num_heads = num_heads
         self.use_layer_scale = use_layer_scale  #层缩放机制
         self.use_residual = use_residual  #残差连接
-        self.scale = nn.Parameter(torch.ones(1)) if use_layer_scale else None
+        self.scale = nn.Parameter(torch.ones(1)) if use_layer_scale else None  #self.scale缩放因子
 
         self.query_dense = nn.Linear(dim, dim)  #查询
         self.key_dense = nn.Linear(dim, dim)   #键
