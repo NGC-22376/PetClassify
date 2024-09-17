@@ -12,3 +12,8 @@ def make_divisible(
     if round_down_protect and new_value < 0.9 * value:
         new_value += divisor
     return int(new_value)
+"""
+如果输入 value = 45.5, divisor = 8，函数会调整 value 为最接近 8 的倍数的值，返回的结果将是一个被 8 整除的整数。
+
+这个函数用于调整一个数，使其变为最接近的、能被指定除数整除的整数，并提供了额外的保护机制以避免过度向下取整
+"""
