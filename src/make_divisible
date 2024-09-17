@@ -1,0 +1,14 @@
+def make_divisible(
+        value: float,
+        divisor: int,
+        min_value: Optional[float] = None,
+        round_down_protect: bool = True,
+) -> int:
+   
+    if min_value is None:
+        min_value = divisor
+    new_value = max(min_value, int(value + divisor / 2) // divisor * divisor)
+    
+    if round_down_protect and new_value < 0.9 * value:
+        new_value += divisor
+    return int(new_value)
