@@ -1,0 +1,9 @@
+def conv_2d(inp, oup, kernel_size=3, stride=1, groups=1, bias=False, norm=True, act=True):
+    conv = nn.Sequential()
+    padding = (kernel_size - 1) // 2
+    conv.add_module('conv', nn.Conv2d(inp, oup, kernel_size, stride, padding, bias=bias, groups=groups))
+    if norm:
+        conv.add_module('BatchNorm2d', nn.BatchNorm2d(oup))
+    if act:
+        conv.add_module('Activation', nn.ReLU6())
+    return conv
