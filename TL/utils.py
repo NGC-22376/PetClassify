@@ -14,7 +14,7 @@ def output_msg_with_time(msg):
 
 
 # 绘制loss-epoch图像
-def draw(loss_list, acc_list, epoch):
+def draw(loss_list, acc_list, epoch, max_epoch):
     # 清除之前的图
     clear_output(wait=True)
 
@@ -25,13 +25,13 @@ def draw(loss_list, acc_list, epoch):
     acc_train = torch.tensor(acc_list[0]).cpu().numpy()
     acc_test = torch.tensor(acc_list[1]).cpu().numpy()
 
-    plt.plot(x, loss_train, linestyle='--', color='red', label='train_loss/200')
-    plt.plot(x, loss_test, linestyle='--', color='blue', label='test_loss/200')
+    plt.plot(x, loss_train, linestyle='--', color='red', label='train_loss')
+    plt.plot(x, loss_test, linestyle='--', color='blue', label='test_loss')
     plt.plot(x, acc_train, linestyle='-', color='red', label='train_acc')
     plt.plot(x, acc_test, linestyle='-', color='blue', label='test_acc')
 
     # 坐标轴：x[1, 2, 3, 4], y[0, 0.05, ..., 1.00]
-    xticks = np.arange(1, 5)
+    xticks = np.arange(1, max_epoch)
     yticks = np.arange(0, 1.05, 0.05)
 
     plt.xticks(xticks)

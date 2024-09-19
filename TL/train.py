@@ -19,7 +19,7 @@ def evaluate(net, test_data, batch_size, loss, device):
     """
     :return: 测试的平均误差
     """
-    test_dataloader = DataLoader(test_data, batch_size=batch_size, shuffle=True, num_workers=0)
+    test_dataloader = DataLoader(test_data, batch_size=batch_size, shuffle=True, num_workers=0, drop_last=True)
     total_loss = 0
     net.eval()
     model.eval()
@@ -29,9 +29,9 @@ def evaluate(net, test_data, batch_size, loss, device):
     for X, y in test_dataloader:
         with torch.no_grad():
             X, y = X.to(device), y.to(device)
-            features = extract_features(X, model, batch_size, device=device)
-            x = torch.stack([feature for feature in features], dim=0)
-            y_hat = net(x)
+            # features = extract_features(X, model, batch_size, device=device)
+            # x = torch.stack([feature for feature in features], dim=0)
+            y_hat = net(X)
             eval_loss = loss(y_hat, y)
 
         # 计算每一批量的准确个数，并累加
@@ -44,13 +44,13 @@ def evaluate(net, test_data, batch_size, loss, device):
         output_msg_with_time(f"test:{times * batch_size}")
 
     batch_num = len(test_dataloader)
-    avg_test_loss = total_loss / (batch_num * 200)
+    avg_test_loss = total_loss / (batch_num)
     avg_acc = acc / (batch_num * batch_size)
     output_msg_with_time(f"本轮次测试平均误差：{avg_test_loss}, 平均准确率：{avg_acc}")
     return avg_test_loss, avg_acc
 
 
-def train(net, train_data, test_data, batch_size, epochs, device, lr=0.05):
+def train(net, train_data, test_data, batch_size, epochs, device, lr=0.5):
     # 初始化网络参数
     net.apply(init_weight)
 
@@ -62,20 +62,20 @@ def train(net, train_data, test_data, batch_size, epochs, device, lr=0.05):
         print(f"模型转移到设备时出错: {e}")
 
     # 定义优化器和损失函数
-    optimizer = torch.optim.SGD(net.parameters(), lr=lr)
+    optimizer = torch.optim.SGD(net.parameters(), lr=lr, weight_decay=1e-4)
     loss = nn.CrossEntropyLoss()
 
-    times = 0
     loss_list = [[], []]
     accuracy_list = [[], []]
     # 开始训练
     for epoch in range(1, epochs + 1):
+        times = 0
         output_msg_with_time(f"训练轮次：{epoch}")
         net.train()
         total_loss = 0
         accuracy = 0
         print("Loading data finished.")
-        train_dataloader = DataLoader(train_data, 4, shuffle=True, num_workers=0)
+        train_dataloader = DataLoader(train_data, batch_size, shuffle=True, num_workers=0, drop_last=True)
         for X, y in train_dataloader:
             # 每batch的训练全程
             optimizer.zero_grad()
@@ -98,7 +98,7 @@ def train(net, train_data, test_data, batch_size, epochs, device, lr=0.05):
 
         # 得到每个测试batch的平均误差
         batch_num = len(train_dataloader)
-        avg_loss = total_loss / (batch_num * 200)
+        avg_loss = total_loss / (batch_num)
         avg_acc = accuracy / (batch_num * batch_size)
         output_msg_with_time(f"本轮次训练平均误差：{avg_loss}, 平均准确率：{avg_acc}")
         loss_list[0].append(float(avg_loss))
@@ -114,4 +114,4 @@ def train(net, train_data, test_data, batch_size, epochs, device, lr=0.05):
         accuracy_list[1].append(test_acc)
 
         # 绘图
-        draw(loss_list, accuracy_list, epoch)
+        draw(loss_list, accuracy_list, epoch, epochs)

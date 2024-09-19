@@ -17,7 +17,7 @@ def extract_features(img, net, batch_size, device):
     return [i for i in features]
 
 
-def save_features(net, save_path):
+def save_features(net, batch_size, save_path):
     """
     :param net: 提取特征的网络
     :param save_path: 保存特征文件的路径
@@ -29,9 +29,9 @@ def save_features(net, save_path):
     output_msg_with_time("开始提取特征")
     for X, y in train_dataloader:
         try:
-            features = extract_features(X, net, 4, device)
+            features = extract_features(X, net, batch_size, device)
             times += 1
-            output_msg_with_time(f"extract feature: {times * 4}")
+            output_msg_with_time(f"extract feature: {times * batch_size}")
 
             # 特征存入数组
             for feature in features:
@@ -41,7 +41,7 @@ def save_features(net, save_path):
 
         except RuntimeError as e:
             if 'out of memory' in str(e):
-                extract_log('../extract_log.txt', {times * 4})
+                extract_log('../extract_log.txt', {times * batch_size})
                 # 手动清理缓存，防止占用内存过多
                 torch.cuda.empty_cache()
                 break
@@ -55,12 +55,13 @@ def save_features(net, save_path):
 
 if __name__ == '__main__':
     # 获取数据
+    batch_size=64
     output_msg_with_time("开始获取训练数据")
     dataset_dir = r'C:\Users\30744\Desktop\CodeFiles\Python\MyPetClassification\Dataset'
     train_cat_dataset = MyDataset(dataset_dir + "\\train", "Cat")
     train_dog_dataset = MyDataset(dataset_dir + "\\train", "Dog")
     train_data = ConcatDataset([train_cat_dataset, train_dog_dataset])
-    train_dataloader = DataLoader(train_data, batch_size=4, shuffle=True, num_workers=0)
+    train_dataloader = DataLoader(train_data, batch_size=batch_size, shuffle=True, num_workers=0)
     output_msg_with_time("数据加载完毕")
 
     # 获取训练设备
@@ -72,4 +73,4 @@ if __name__ == '__main__':
     # 获取提取特征的模型
     model = model.eval()
 
-    save_features(model, save_path)
+    save_features(model, batch_size, save_path)

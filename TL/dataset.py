@@ -15,20 +15,25 @@ def data_process(img):
     # 获取图像输入尺寸
     width, height = img.size
     # 裁切
-    center_crop = transforms.CenterCrop((256, 256))
+    # # 特征
+    # center_crop = transforms.CenterCrop((256, 256))
+    # 常规
+    center_crop = transforms.CenterCrop((224, 224))
+
     # 归一化(利用ImageNet上图片的均值和方差)
     normalize = transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
     # resize图像分辨率为(256,256)
     resize = transforms.Resize((269, 269), interpolation=transforms.InterpolationMode.BICUBIC, antialias=True)
     # 转成Tensor格式
     to_tenser = transforms.ToTensor()
+
     # 整合
     transform = transforms.Compose(
         [
             resize,
             center_crop,
             to_tenser,
-            normalize
+            normalize,
         ]
     )
     return transform(img)
