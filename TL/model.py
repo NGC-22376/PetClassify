@@ -60,6 +60,41 @@ class MobileNetV4Classifier(nn.Module):
             nn.Dropout(0.5),
             conv(1280, num_classes, 1, 1)
         )
+
+        # MNV4_M
+        self.mnv4_M = nn.Sequential(
+            conv(3, 32, stride=2),
+            self.fused_IB(32, 48, 4),
+            self.extra_depthwise(48, 80, 3, 5, 1, 2, 4),
+            self.extra_depthwise(80, 80, 3, 3, 1, 1, 2),
+            self.extra_depthwise(80, 160, 3, 5, 1, 2, 2),
+            self.extra_depthwise(160, 160, 3, 3, 1, 1, 1),
+            self.extra_depthwise(160, 160, 3, 3, 1, 1, 1),
+            self.extra_depthwise(160, 160, 3, 5, 1, 1, 1),
+            self.extra_depthwise(160, 160, 3, 3, 1, 1, 1),
+            self.conv_next(160, 160, 3, 1, 2),
+            self.FFN(160, 160, 1, 4),
+            self.conv_next(160, 160, 3, 1, 1),
+            self.extra_depthwise(160, 256, 5, 5, 1, 2, 6),
+            self.extra_depthwise(256, 256, 5, 5, 1, 1, 4),
+            self.extra_depthwise(256, 256, 3, 5, 1, 1, 4),
+            self.extra_depthwise(256, 256, 3, 5, 1, 1, 4),
+            self.FFN(256, 256, 1, 4),
+            self.conv_next(256, 256, 3, 1, 4),
+            self.extra_depthwise(256, 256, 3, 5, 1, 1, 4),
+            self.extra_depthwise(256, 256, 5, 5, 1, 1, 4),
+            self.FFN(256, 256, 1, 4),
+            self.FFN(256, 256, 1, 4),
+            self.conv_next(256, 256, 5, 1, 2),
+            conv(256, 960, 1),
+            nn.AvgPool2d(8),
+            conv(960, 1280, 1),
+            conv(1280, num_classes, 1)
+        )
+
+        # timm MNv4_S
+        self.timm_S = timm.create_model('mobilenetv4_conv_small.e2400_r224_in1k', pretrained=False)
+
         # # 对 Sequential 中的每一层注册钩子
         # for layer in self.mnv4_S:
         #     layer.register_forward_hook(print_layer_shape)
@@ -82,6 +117,6 @@ class MobileNetV4Classifier(nn.Module):
     def forward(self, x):
         # # 特征
         # return self.classifier(x)
-        x = self.mnv4_S(x)
-        x = x.view(x.size(0), -1)
-        return x
+        # x = self.mnv4_S(x)
+        # x = x.view(x.size(0), -1)
+        return self.timm_S(x)

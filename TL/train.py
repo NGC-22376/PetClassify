@@ -105,7 +105,7 @@ def train(net, train_data, test_data, batch_size, epochs, device, lr=0.5):
         accuracy_list[0].append(avg_acc)
 
         # 保存checkpoint文件
-        save_checkpoint(net=net, optimizer=optimizer, epoch=epoch, path="./checkpoint.pth")
+        # save_checkpoint(net=net, optimizer=optimizer, epoch=epoch, path="./checkpoint.pth")
 
         # 测试
         output_msg_with_time(f"开始第{epoch}轮次测试")
