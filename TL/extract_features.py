@@ -13,7 +13,7 @@ def extract_features(img, net, batch_size, device):
     features = []
     with torch.no_grad():
         for i in imgs:
-            features.append(net(i)[-2].reshape(1, -1, 8, 8))
+            features.append(net(i)[-2])
     return [i for i in features]
 
 

@@ -29,9 +29,9 @@ def evaluate(net, test_data, batch_size, loss, device):
     for X, y in test_dataloader:
         with torch.no_grad():
             X, y = X.to(device), y.to(device)
-            # features = extract_features(X, model, batch_size, device=device)
-            # x = torch.stack([feature for feature in features], dim=0)
-            y_hat = net(X)
+            features = extract_features(X, model, batch_size, device=device)
+            x = torch.stack([feature.view(144, 14, 14) for feature in features], dim=0)
+            y_hat = net(x)
             eval_loss = loss(y_hat, y)
 
         # 计算每一批量的准确个数，并累加

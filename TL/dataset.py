@@ -15,7 +15,7 @@ def data_process(img):
     # 获取图像输入尺寸
     width, height = img.size
     # 裁切
-    # # 特征
+    # 特征
     # center_crop = transforms.CenterCrop((256, 256))
     # 常规
     center_crop = transforms.CenterCrop((224, 224))
